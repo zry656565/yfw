@@ -1,7 +1,7 @@
 # YFW
 Yet another Firewall powered by tcpdump & libpcap
 
-## Packet Recording
+### Packet Recording
 
 Install `tcpdump` with homebrew on OS X
 
@@ -12,6 +12,7 @@ brew install tcpdump
 The version of tcpdump and libpcap on my system
 ```
 tcpdump --version
+
 # output of the script:
 tcpdump version 4.6.2
 libpcap version 1.5.3 - Apple version 47
@@ -26,7 +27,12 @@ sudo tcpdump -i en0 -w dump.pcap
 
 And you can find the sample that I recorded from [Here](https://raw.githubusercontent.com/zry656565/yfw/master/sample.pcap)
 
-## Reference
+### Implement Firewall
+
+[Design Proposal](https://github.com/zry656565/yfw/blob/master/design.md)
+
+
+### Reference
 
 - Tcpdump
   - [Tcpdump usage examples](http://www.rationallyparanoid.com/articles/tcpdump.html)
@@ -36,5 +42,6 @@ And you can find the sample that I recorded from [Here](https://raw.githubuserco
   - [libpcap-tutorial.pdf](http://eecs.wsu.edu/~sshaikot/docs/lbpcap/libpcap-tutorial.pdf)
   - [Packet Reading with libpcap](http://systhread.net/texts/200805lpcap1.php)
   - [libpcap Haking](http://recursos.aldabaknocking.com/libpcapHakin9LuisMartinGarcia.pdf)
+  - [Libpcap File Format](https://wiki.wireshark.org/Development/LibpcapFileFormat)
 - PF_RING
   - [PF_RING HOME](http://www.ntop.org/products/packet-capture/pf_ring/)
