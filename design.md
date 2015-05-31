@@ -2,21 +2,29 @@
 
 ### 1. Filter Out incoming ARP packets
 
+**Requirement**: Filter out all incomming ARP packets
+
 ####STEPS
-1). Read packets from `dump.pcap`
-2). Parse packets header
-3). Justify if this packet is an ARP packet
-4). Justify if this packet is an incoming packet
-5). if the conditions of 3) and 4) are matched, drop this packet. Or store the data of this packet into `filtered.pcap`
+1. Read packets from `dump.pcap`
+2. Parse packets header
+3. Justify if this packet is an ARP packet
+4. Justify if this packet is an incoming packet
+5. if the conditions of 3) and 4) are matched, drop this packet. Or store the data of this packet into `filtered.pcap`
 
 
 ### 2. Filter Out outgoing DNS queries
 
+**Requirement**: Filter out all outgoing DNS queries. Because you are replaying packets, this operation won’t affect future packets.
+
 ####STEPS
-1). Read packets from `dump.pcap`
-2). Parse packets header
-3). Justify if this packet is a DNS query
-4). Justify if this packet is an outgoing packet
-5). if the conditions of 3) and 4) are matched, drop this packet. Or store the data of this packet into `filtered.pcap`
+1. Read packets from `dump.pcap`
+2. Parse packets header
+3. Justify if this packet is a DNS query
+4. Justify if this packet is an outgoing packet
+5. if the conditions of 3) and 4) are matched, drop this packet. Or store the data of this packet into `filtered.pcap`
 
 ### 3. Limit the number of outgoing TCP connection
+
+**Requirement**: Limit the number of outgoing TCP connections to 5. When the number of TCP connections reaches 5, drop TCP packets of future connections. When a connection terminates, one more connection is allowed to establish. You need to accurately deal with different type of TCP packets at different stages.
+
+**Hint**: The last rule is a little difficult. Your firewall need track the establishment and termination of TCP connections and dynamically decide whether to drop packets or forward packets.

@@ -1,5 +1,5 @@
 # YFW
-Yet another Firewall powered by tcpdump & libpcap
+Yet another emulated Firewall powered by tcpdump & libpcap
 
 ### Packet Recording
 
