@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     /*==================
      * STEP I
      * Read the pcap file
-     *==================*/
+    *==================*/
     descr = pcap_open_offline(argv[1],errbuf);
 
     if(descr == NULL)
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     /*==================
      * STEP II
      * if next packet exist, parse the header of it, or jump to STEP VI
-     *==================*/
+    *==================*/
     while((packet = pcap_next(descr, &hdr)) != NULL) {
         /* lets start with the ether header... */
         eptr = (struct ether_header *) packet;
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
         /*==================
          * STEP III
          * Justify if this packet is an ARP packet
-         *==================*/
+        *==================*/
         int flag = TRUE;
         if (ntohs (eptr->ether_type) == ETHERTYPE_ARP) {
             printf("Ethernet type hex:%x dec:%d is an ARP packet\n",
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
             /*==================
              * STEP IV
              * Justify if this packet is an incoming packet
-             *==================*/
+            *==================*/
 
 
             
@@ -75,13 +75,17 @@ int main(int argc, char **argv)
          * STEP V
          * if the conditions of (3) and (4) are matched, drop this packet,
          * or store the data of this packet into filtered.pcap
-         *==================*/
+        *==================*/
         if (flag == TRUE) {
 
         } else {
             
         }
     }
-    
+
+    /*==================
+     * STEP VI
+     * DONE
+    *==================*/
     return 0;
 }
