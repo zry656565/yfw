@@ -1,5 +1,6 @@
 make:
-	gcc src/filterARP.c -o filterARP -lpcap
+	gcc src/filter.c -o filter -lpcap
+	gcc src/tcpLimit.c -o tcpLimit -lpcap
 
 clean:
-	rm filterARP
+	rm filter tcpLimit

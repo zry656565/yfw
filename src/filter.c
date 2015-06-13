@@ -1,5 +1,5 @@
 /***************************************************
-* file:     filterARP.c
+* file:     filter.c
 * Author:   Jerry Zou
 *****************************************************/
 #include <stdio.h>
@@ -14,9 +14,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
-#include <netinet/if_ether.h> /* includes net/ethernet.h */
-
-#define DEBUG  1
+#include <netinet/if_ether.h>
 
 #define TRUE   1
 #define FALSE  0
@@ -77,9 +75,7 @@ int main(int argc, char **argv)
         if (ntohs (eptr->ether_type) == ETHERTYPE_ARP) {
             struct arphdr *arp_header = (struct arphdr *) (packet + ETHER_HEADER_LEN);
             if (ntohs(arp_header->ar_op) == ARPOP_REPLY) {
-#ifdef DEBUG
-                printf("An incoming ARP packet!\n");
-#endif
+                printf("Drop an incoming ARP packet!\n");
                 flag = FALSE;
             }
         } else if (ntohs (eptr->ether_type) == ETHERTYPE_IP) {
@@ -87,17 +83,13 @@ int main(int argc, char **argv)
             if (ip_header->ip_p == IPPROTO_TCP) {
                 struct tcphdr *tcp_header = (struct tcphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
                 if (ntohs(tcp_header->th_dport) == DNS_PORT) {
-#ifdef DEBUG
-                    printf("An outgoing DNS packet through TCP!\n");
-#endif
+                    printf("Drop an outgoing DNS packet through TCP!\n");
                     flag = FALSE;
                 }
             } else if (ip_header->ip_p == IPPROTO_UDP) {
                 struct udphdr *udp_header = (struct udphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
                 if (ntohs(udp_header->uh_dport) == DNS_PORT) {
-#ifdef DEBUG
-                    printf("An outgoing DNS packet through UDP!\n");
-#endif
+                    printf("Drop an outgoing DNS packet through UDP!\n");
                     flag = FALSE;
                 }
             }
