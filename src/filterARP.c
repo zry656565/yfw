@@ -11,14 +11,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if_arp.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
 #include <netinet/if_ether.h> /* includes net/ethernet.h */
 
-#define DEBUG 1
+#define DEBUG  1
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE   1
+#define FALSE  0
 
-#define ETHER_HEADER_LEN 14
+#define ETHER_HEADER_LEN  14
+#define DNS_PORT          53
 
 int main(int argc, char **argv)
 {
@@ -26,7 +30,7 @@ int main(int argc, char **argv)
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* descr;
-    pcap_dumper_t* filtered;
+    pcap_dumper_t *filtered;
     const u_char *packet;
     struct pcap_pkthdr hdr;     /* pcap.h */
     struct ether_header *eptr;  /* net/ethernet.h */
@@ -50,7 +54,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    filtered = pcap_dump_open(descr, "output/filtere.pcap");
+    filtered = pcap_dump_open(descr, "output/filtered.pcap");
 
     if(filtered == NULL) {
         printf("Error: pcap_dump_open() - filtered.pcap\n");
@@ -65,26 +69,37 @@ int main(int argc, char **argv)
         /* lets start with the ether header... */
         eptr = (struct ether_header *) packet;
 
-        /*==================
-         * STEP III
-         * Justify if this packet is an ARP packet
-        *==================*/
         int flag = TRUE;
+        /*==================
+         * STEP III - IV
+         * Justify if this packet is an incoming ARP packet / outcoming DNS query
+        *==================*/
         if (ntohs (eptr->ether_type) == ETHERTYPE_ARP) {
-#ifdef DEBUG
-            printf("Ethernet type hex:%x is an ARP packet\n",
-                    ntohs(eptr->ether_type));
-#endif
-            /*==================
-             * STEP IV
-             * Justify if this packet is an incoming packet
-            *==================*/
-            struct arphdr* arp_header = (struct arphdr *) (packet + ETHER_HEADER_LEN);
+            struct arphdr *arp_header = (struct arphdr *) (packet + ETHER_HEADER_LEN);
             if (ntohs(arp_header->ar_op) == ARPOP_REPLY) {
 #ifdef DEBUG
-                printf("Incoming ARP packet!\n");
+                printf("An incoming ARP packet!\n");
 #endif
                 flag = FALSE;
+            }
+        } else if (ntohs (eptr->ether_type) == ETHERTYPE_IP) {
+            struct ip *ip_header = (struct ip *) (packet + ETHER_HEADER_LEN);
+            if (ip_header->ip_p == IPPROTO_TCP) {
+                struct tcphdr *tcp_header = (struct tcphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
+                if (ntohs(tcp_header->th_dport) == DNS_PORT) {
+#ifdef DEBUG
+                    printf("An outgoing DNS packet through TCP!\n");
+#endif
+                    flag = FALSE;
+                }
+            } else if (ip_header->ip_p == IPPROTO_UDP) {
+                struct udphdr *udp_header = (struct udphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
+                if (ntohs(udp_header->uh_dport) == DNS_PORT) {
+#ifdef DEBUG
+                    printf("An outgoing DNS packet through UDP!\n");
+#endif
+                    flag = FALSE;
+                }
             }
         }
 
@@ -94,7 +109,7 @@ int main(int argc, char **argv)
          * or store the data of this packet into filtered.pcap
         *==================*/
         if (flag == TRUE) {
-            pcap_dump(filtered, &hdr, packet);
+            pcap_dump((u_char *)filtered, &hdr, packet);
         }
     }
 
