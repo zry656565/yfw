@@ -34,11 +34,11 @@ arping -c 1 192.168.1.1
 arping -c 1 216.58.221.100    # IP Address of google.com
 ```
 
-And you can find the sample that I recorded from [Here](https://raw.githubusercontent.com/zry656565/yfw/master/sample.pcap)
+And you can find the sample that I recorded from [Here](./testcase/sample.pcap)
 
 ### Implement Firewall
 
-[Design Proposal](https://github.com/zry656565/yfw/blob/master/design.md)
+[Design Proposal](./design.md)
 
 
 ### Reference
