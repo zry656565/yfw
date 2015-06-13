@@ -7,12 +7,18 @@
 #include <pcap.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <net/if_arp.h>
 #include <netinet/if_ether.h> /* includes net/ethernet.h */
+
+#define DEBUG 1
 
 #define TRUE 1
 #define FALSE 0
+
+#define ETHER_HEADER_LEN 14
 
 int main(int argc, char **argv)
 {
@@ -20,6 +26,7 @@ int main(int argc, char **argv)
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* descr;
+    pcap_dumper_t* filtered;
     const u_char *packet;
     struct pcap_pkthdr hdr;     /* pcap.h */
     struct ether_header *eptr;  /* net/ethernet.h */
@@ -38,9 +45,15 @@ int main(int argc, char **argv)
     *==================*/
     descr = pcap_open_offline(argv[1],errbuf);
 
-    if(descr == NULL)
-    {
+    if(descr == NULL) {
         printf("pcap_open_offline(): %s\n",errbuf);
+        exit(1);
+    }
+
+    filtered = pcap_dump_open(descr, "output/filtere.pcap");
+
+    if(filtered == NULL) {
+        printf("Error: pcap_dump_open() - filtered.pcap\n");
         exit(1);
     }
     
@@ -58,17 +71,21 @@ int main(int argc, char **argv)
         *==================*/
         int flag = TRUE;
         if (ntohs (eptr->ether_type) == ETHERTYPE_ARP) {
-            printf("Ethernet type hex:%x dec:%d is an ARP packet\n",
-                    ntohs(eptr->ether_type),
+#ifdef DEBUG
+            printf("Ethernet type hex:%x is an ARP packet\n",
                     ntohs(eptr->ether_type));
+#endif
             /*==================
              * STEP IV
              * Justify if this packet is an incoming packet
             *==================*/
-
-
-            
-
+            struct arphdr* arp_header = (struct arphdr *) (packet + ETHER_HEADER_LEN);
+            if (ntohs(arp_header->ar_op) == ARPOP_REPLY) {
+#ifdef DEBUG
+                printf("Incoming ARP packet!\n");
+#endif
+                flag = FALSE;
+            }
         }
 
         /*==================
@@ -77,9 +94,7 @@ int main(int argc, char **argv)
          * or store the data of this packet into filtered.pcap
         *==================*/
         if (flag == TRUE) {
-
-        } else {
-            
+            pcap_dump(filtered, &hdr, packet);
         }
     }
 
@@ -87,5 +102,8 @@ int main(int argc, char **argv)
      * STEP VI
      * DONE
     *==================*/
+    pcap_close(descr);
+    pcap_dump_close(filtered);
+
     return 0;
 }
