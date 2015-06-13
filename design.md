@@ -1,6 +1,6 @@
 # Design Proposal for YFW
 
-### 1. Filter Out incoming ARP packets
+### 1. Filter Out incoming ARP packets [[Realization: filter.c](./src/filter.c)]
 
 **Requirement**: Filter out all incomming ARP packets
 
@@ -21,7 +21,7 @@ Drop an incoming ARP packet!
 Drop an incoming ARP packet!
 ```
 
-### 2. Filter Out outgoing DNS queries
+### 2. Filter Out outgoing DNS queries [[Realization: filter.c](./src/filter.c)]
 
 **Requirement**: Filter out all outgoing DNS queries. Because you are replaying packets, this operation won’t affect future packets.
 
@@ -43,7 +43,7 @@ Drop an outgoing DNS packet through UDP!
 Drop an outgoing DNS packet through UDP!
 ```
 
-### 3. Limit the number of outgoing TCP connection
+### 3. Limit the number of outgoing TCP connection [[Realization: tcpLimit.c](./src/tcpLimit.c)]
 
 **Requirement**: Limit the number of outgoing TCP connections to 5. When the number of TCP connections reaches 5, drop TCP packets of future connections. When a connection terminates, one more connection is allowed to establish. You need to accurately deal with different type of TCP packets at different stages.
 
