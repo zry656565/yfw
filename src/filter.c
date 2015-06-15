@@ -100,7 +100,7 @@ int main(int argc, char **argv)
          * if the conditions of (3) and (4) are matched, drop this packet,
          * or store the data of this packet into filtered.pcap
         *==================*/
-        if (flag == TRUE) {
+        if (flag) {
             pcap_dump((u_char *)filtered, &hdr, packet);
         }
     }
