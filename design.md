@@ -1,6 +1,6 @@
 # Design Proposal for YFW
 
-### 1. Filter Out incoming ARP packets [[Realization: filter.c](./src/filter.c)]
+### 1. Filter Out incoming ARP packets [[filter.c](./src/filter.c)]
 
 **Requirement**: Filter out all incomming ARP packets
 
@@ -21,7 +21,7 @@ Drop an incoming ARP packet!
 Drop an incoming ARP packet!
 ```
 
-### 2. Filter Out outgoing DNS queries [[Realization: filter.c](./src/filter.c)]
+### 2. Filter Out outgoing DNS queries [[filter.c](./src/filter.c)]
 
 **Requirement**: Filter out all outgoing DNS queries. Because you are replaying packets, this operation won’t affect future packets.
 
@@ -43,7 +43,7 @@ Drop an outgoing DNS packet through UDP!
 Drop an outgoing DNS packet through UDP!
 ```
 
-### 3. Limit the number of outgoing TCP connection [[Realization: tcpLimit.c](./src/tcpLimit.c)]
+### 3. Limit the number of outgoing TCP connection [[tcpLimit.c](./src/tcpLimit.c)]
 
 **Requirement**: Limit the number of outgoing TCP connections to 5. When the number of TCP connections reaches 5, drop TCP packets of future connections. When a connection terminates, one more connection is allowed to establish. You need to accurately deal with different type of TCP packets at different stages.
 
@@ -54,9 +54,9 @@ Drop an outgoing DNS packet through UDP!
 2. Let connection number = 0
 3. If next packet exists, parse the header of it, or jump to STEP(9).
 4. Justify if the protocol of this packet is TCP. If true, go next, else go STEP(3).
-5. Justify if a connection has been established for this packet. If true, go STEP(7), else if TCP connection has reach 5, then drop this packet, else go next.
-6. Establish a new TCP connection for this packet and let connection number += 1
-7. Justify if this packet is the last one of the connection, if so, then let connection number -= 1.
+5. if the packet contains flag_SYN and connection number < 5, establish a new TCP connection for this packet and let connection number += 1, then go STEP(8); else if connection number >= 5, go STEP(3).
+6. if the packet contains flag_FIN, close the TCP connection for this packet and let connection number -= 1, then go STEP(8);
+7. Justify if a connection has been established for this packet. If true, go STEP(8), else go STEP(3).
 8. Store the data of this packet into `filtered.pcap`. Then jump to STEP(3)
 9. DONE
 
@@ -65,4 +65,40 @@ Drop an outgoing DNS packet through UDP!
 ```
 ...$ make
 ...$ ./tcpLimit testcase/dump.pcap
+Connection 0: SYN_SEND          Remote IP: 115.239.210.27   Port: 20480
+Connection 0: ESTABLISHED       Remote IP: 115.239.210.27   Port: 20480
+Connection 1: SYN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 2: SYN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 3: SYN_SEND          Remote IP: 115.239.211.112  Port: 47873
+Connection 4: SYN_SEND          Remote IP: 58.215.118.33    Port: 47873
+Connection 1: ESTABLISHED       Remote IP: 115.239.210.27   Port: 47873
+Connection 2: ESTABLISHED       Remote IP: 115.239.210.27   Port: 47873
+Connection 3: ESTABLISHED       Remote IP: 115.239.211.112  Port: 47873
+Connection 4: ESTABLISHED       Remote IP: 58.215.118.33    Port: 47873
+Connection 1: FIN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 1: CLOSED            Remote IP: 115.239.210.27   Port: 47873
+Connection 1: SYN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 1: ESTABLISHED       Remote IP: 115.239.210.27   Port: 47873
+Connection 3: FIN_SEND          Remote IP: 115.239.211.112  Port: 47873
+Connection 1: FIN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 2: FIN_SEND          Remote IP: 115.239.210.27   Port: 47873
+Connection 4: FIN_SEND          Remote IP: 58.215.118.33    Port: 47873
+Connection 1: CLOSED            Remote IP: 115.239.210.27   Port: 47873
+Connection 4: CLOSED            Remote IP: 58.215.118.33    Port: 47873
+Connection 1: SYN_SEND          Remote IP: 61.135.169.120   Port: 19203
+Connection 4: SYN_SEND          Remote IP: 61.135.169.120   Port: 19203
+Connection 3: CLOSED            Remote IP: 115.239.211.112  Port: 47873
+Connection 3: SYN_SEND          Remote IP: 101.227.66.158   Port: 20480
+Connection 3: ESTABLISHED       Remote IP: 101.227.66.158   Port: 20480
+Connection 3: FIN_SEND          Remote IP: 101.227.66.158   Port: 20480
+Connection 3: CLOSED            Remote IP: 101.227.66.158   Port: 20480
+Connection 3: SYN_SEND          Remote IP: 101.226.178.140  Port: 20480
+Connection 3: ESTABLISHED       Remote IP: 101.226.178.140  Port: 20480
+Connection 3: FIN_SEND          Remote IP: 101.226.178.140  Port: 20480
+Connection 3: CLOSED            Remote IP: 101.226.178.140  Port: 20480
+Connection 3: SYN_SEND          Remote IP: 115.239.211.112  Port: 47873
+Connection 3: ESTABLISHED       Remote IP: 115.239.211.112  Port: 47873
+Connection 0: FIN_SEND          Remote IP: 115.239.210.27   Port: 20480
+Connection 3: FIN_SEND          Remote IP: 115.239.211.112  Port: 47873
+Connection 3: CLOSED            Remote IP: 115.239.211.112  Port: 47873
 ```
