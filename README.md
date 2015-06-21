@@ -60,3 +60,6 @@ And you can find the sample that I recorded from [Here](./testcase/sample.pcap)
   - [ARP Message Format](http://www.tcpipguide.com/free/t_ARPMessageFormat.htm)
   - [netinet/ip.h](http://unix.superglobalmegacorp.com/Net2/newsrc/netinet/ip.h.html)
   - [netinet/tcp.h](http://unix.superglobalmegacorp.com/BSD4.4/newsrc/netinet/tcp.h.html)
+- DNS queries
+  - [Identifying DNS packets](http://stackoverflow.com/questions/7565300/identifying-dns-packets)
+  - [RFC 1035](http://tools.ietf.org/html/rfc1035)
