@@ -20,7 +20,27 @@
 #define FALSE  0
 
 #define ETHER_HEADER_LEN  14
+#define UDP_HEADER_LEN    8
 #define DNS_PORT          53
+
+struct dnshdr {
+    u_short id;
+    u_short flags;
+#define FLAG_QR       1
+#define FLAG_OPCODE   30
+#define FLAG_AA       32
+#define FLAG_TC       64
+#define FLAG_RD       128
+#define FLAG_RA       256
+#define FLAG_Z        3584
+#define FLAG_RCODE    61440
+    u_short qd_count;
+    u_short an_count;
+    u_short ns_count;
+    u_short ar_count;
+};
+
+
 
 int main(int argc, char **argv)
 {
@@ -70,7 +90,7 @@ int main(int argc, char **argv)
         int flag = TRUE;
         /*==================
          * STEP III - IV
-         * Justify if this packet is an incoming ARP packet / outcoming DNS query
+         * Justify if this packet is an incoming ARP packet / outgoing DNS query
         *==================*/
         if (ntohs (eptr->ether_type) == ETHERTYPE_ARP) {
             struct arphdr *arp_header = (struct arphdr *) (packet + ETHER_HEADER_LEN);
@@ -80,16 +100,15 @@ int main(int argc, char **argv)
             }
         } else if (ntohs (eptr->ether_type) == ETHERTYPE_IP) {
             struct ip *ip_header = (struct ip *) (packet + ETHER_HEADER_LEN);
-            if (ip_header->ip_p == IPPROTO_TCP) {
-                struct tcphdr *tcp_header = (struct tcphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
-                if (ntohs(tcp_header->th_dport) == DNS_PORT) {
-                    printf("Drop an outgoing DNS packet through TCP!\n");
-                    flag = FALSE;
-                }
-            } else if (ip_header->ip_p == IPPROTO_UDP) {
+            if (ip_header->ip_p == IPPROTO_UDP) {
                 struct udphdr *udp_header = (struct udphdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4);
-                if (ntohs(udp_header->uh_dport) == DNS_PORT) {
-                    printf("Drop an outgoing DNS packet through UDP!\n");
+                struct dnshdr *dns_header = (struct dnshdr *) (packet + ETHER_HEADER_LEN + ip_header->ip_hl * 4 + UDP_HEADER_LEN);
+                if ((ntohs(dns_header->flags) & FLAG_QR) == 0
+                      && ntohs(dns_header->an_count) == 0
+                      && ntohs(dns_header->ns_count) == 0
+                      && (ntohs(dns_header->flags) & FLAG_Z) == 0
+                      && (ntohs(dns_header->flags) & FLAG_RCODE) == 0) {
+                    printf("Drop an outgoing DNS packet through UDP! Target Port:%d \n", ntohs(udp_header->uh_dport));
                     flag = FALSE;
                 }
             }
